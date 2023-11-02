@@ -19,6 +19,8 @@ class App extends Component{
                 {name: 'Ivan T.' , salary: '5000', increase: true, rise: false, id:3 },
                 {name: 'Frank C.' , salary: '8000', increase: false, rise: false, id:4 },
             ],
+            term: '',
+            filter: 'all'
         }
         this.maxId = 5;
     }
@@ -36,7 +38,7 @@ class App extends Component{
     }
 
     addItem = (name, salary) => {
-       const empl = {
+       const employee = {
            name: name,
            salary: salary,
            increase: false,
@@ -44,7 +46,7 @@ class App extends Component{
            id: this.maxId++}
         this.setState(({data}) => {
             return {
-                data: data.concat([empl])
+                data: data.concat([employee])
             }
         })
         console.log('added');
@@ -72,20 +74,53 @@ class App extends Component{
         }))
     }
 
+    searchEmp = (items, term) => {
+        if(term.length === 0){
+            return items;
+        }
+
+        return items.filter(item => {
+            return item.name.indexOf(term) > -1
+        });
+    }
+
+    onUpdateSearch = (term) => {
+        this.setState({term});
+    }
+
+    filterPost = (items, filter) => {
+        switch (filter){
+            case 'rise':
+                return items.filter(item => item.rise);
+            case 'moreThan1000':
+                return items.filter(item => item.salary > 1000)
+            default:
+                return items
+        }
+    }
+
+    onFIlterSelect = (filter) => {
+        this.setState({filter});
+    }
+
     render() {
         const employees = this.state.data.length;
         const increased = this.state.data.filter(item => item.increase).length;
-        const {data} = this.state;
-
+        const {data, term, filter} = this.state;
+        const visibleData = this.filterPost(this.searchEmp(data, term), filter);
+        console.log('visibleData',visibleData)
         return (
             <div className={'app'}>
                 <AppInfo employees = {employees} increased = {increased}/>
                 <div className={'search-panel'}>
-                    <SearchPanel/>
-                    <AppFilter/>
+                    <SearchPanel onUpdateSearch = {this.onUpdateSearch}/>
+                    <AppFilter
+                        filter ={filter}
+                        onFIlterSelect = {this.onFIlterSelect}
+                    />
                 </div>
                 <EmployeesList
-                    data = {data}
+                    data = {visibleData}
                     onDelete = {this.deleteItem}
                     onToggleProp = {this.onToggleProp}
                 />
